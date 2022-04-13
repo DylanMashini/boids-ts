@@ -29,9 +29,7 @@ canvas {
   display: flex;
   flex-direction: column;
 }
-.github {
 
-}
 .github-wrapper {
   position:fixed;
   right:1vw;

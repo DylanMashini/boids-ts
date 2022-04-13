@@ -13,6 +13,7 @@ let settings = {
 	boidCount: 100,
 	boxSize: 50,
 	randomHome: true,
+	colorSeperation: false,
 };
 //get html form
 const form = document.querySelector("form");
@@ -29,6 +30,8 @@ form["boidCount"].value = String(settings.boidCount);
 form["boxSize"].value = String(settings.boxSize);
 /* @ts-ignore */
 form["randomHome"].checked = settings.randomHome;
+/* @ts-ignore */
+form["color"].checked = settings.colorSeperation;
 /* @ts-ignore */
 //add callback for if the button on the form is pressed
 form.addEventListener("submit", e => {
@@ -99,6 +102,8 @@ form.addEventListener("submit", e => {
 	settings["boidCount"] = Number(form["boidCount"].value);
 	/* @ts-ignore */
 	settings["randomHome"] = form["randomHome"].checked;
+	/* @ts-ignore */
+	settings["colorSeperation"] = form["color"].checked;
 });
 
 class boid extends THREE.Mesh {
@@ -107,10 +112,12 @@ class boid extends THREE.Mesh {
 	closeCount: number;
 	home: THREE.Vector3;
 	randomHome: boolean;
+	group: number;
 	constructor(scene: THREE.Scene) {
 		const geo = new THREE.ConeGeometry(0.5, 2, 32, 32);
+		const group = Math.floor(Math.random() * colorList.length);
 		const mat = new THREE.MeshBasicMaterial({
-			color: colorList[Math.floor(Math.random() * colorList.length)],
+			color: colorList[group],
 		});
 		super(geo, mat);
 		this.rot = new THREE.Vector3(
@@ -119,6 +126,7 @@ class boid extends THREE.Mesh {
 			(Math.PI / Math.random()) * 2
 		);
 		this.randomHome = false;
+		this.group = group;
 		this.position.x = this.randomPosition("x");
 		this.position.y = this.randomPosition("y");
 		this.position.z = this.randomPosition("z");
@@ -173,26 +181,7 @@ class boid extends THREE.Mesh {
 		}
 		return home;
 	}
-	distanceRule(boids: boid[], count: number) {
-		const minDistance = 1;
-		for (let i = 0; i < boids.length; i++) {
-			if (i != count) {
-				const distance = this.position.distanceTo(boids[i].position);
-				if (distance < minDistance) {
-					//boids are too close together
-					let d = new THREE.Vector3();
-					d.subVectors(this.position, boids[i].position);
-					this.vel.add(d.multiplyScalar(Math.random() * 5));
-					this.closeCount += 1;
-				} else {
-					this.closeCount = 0;
-				}
-				if (this.closeCount > 5) {
-					console.log("birds too close");
-				}
-			}
-		}
-	}
+	//combine three rules into one method for performance
 	calcBoid(boids: boid[]) {
 		//set inital values for rules + counts to average out the boids
 		const seperationSum = new THREE.Vector3(0, 0, 0);
@@ -202,26 +191,32 @@ class boid extends THREE.Mesh {
 		let seperationCount = 0;
 		let allignmentCount = 0;
 		let cohesionCount = 0;
-		for (let i = 0; i < boids.length; i++) {
+		let boidArr: boid[] = [];
+		if (!settings.colorSeperation) {
+			boidArr = boids;
+		} else {
+			//fix performance
+			boidArr = boids.filter(boid => boid.group == this.group);
+		}
+		for (let i = 0; i < boidArr.length; i++) {
 			//get distance of boid at i from current boid
-			const distance = this.position.distanceTo(boids[i].position);
-
+			const distance = this.position.distanceTo(boidArr[i].position);
 			if (distance > 0) {
 				//get sum of velocity of all neighbors in a given distance for allignment
 				if (distance < settings.neighbohoodSize) {
-					allignmentSum.add(boids[i].vel);
+					allignmentSum.add(boidArr[i].vel);
 					allignmentCount++;
 				}
 				//sum up all POSITIONS of all neighbors in a given distance for cohesion
 				if (distance < settings.neighbohoodSize) {
-					cohesionSum.add(boids[i].position);
+					cohesionSum.add(boidArr[i].position);
 					cohesionCount++;
 				}
 				//do seperation rule
 				if (distance < settings.neighbohoodSize) {
 					const vecDir = new THREE.Vector3().subVectors(
 						this.position,
-						boids[i].position
+						boidArr[i].position
 					);
 					vecDir.normalize();
 					vecDir.divideScalar(distance);
@@ -277,14 +272,12 @@ class boid extends THREE.Mesh {
 		acceleration.add(seperation);
 		acceleration.add(allignment);
 		acceleration.add(cohesion);
-		if (this.position.length() > settings.boxSize - 30) {
-			const homeForce = this.steerTo(
-				this.home,
-				maxSpeed,
-				0.03
-			).multiplyScalar(1);
-			acceleration.sub(homeForce);
-		}
+		// if (this.position.length() > settings.boxSize - 30) {
+		const homeForce = this.steerTo(this.home, maxSpeed, 0.03).divideScalar(
+			7
+		);
+		acceleration.sub(homeForce);
+		// }
 		this.vel.add(acceleration).clampLength(0, maxSpeed);
 		this.updateBoid();
 	}
