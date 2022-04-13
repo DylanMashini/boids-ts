@@ -29,3 +29,15 @@ canvas {
   display: flex;
   flex-direction: column;
 }
+.github {
+
+}
+.github-wrapper {
+  position:fixed;
+  right:1vw;
+  bottom: 2vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
