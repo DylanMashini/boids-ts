@@ -9,6 +9,21 @@
   <body>
     <div id="app"></div>
     <canvas id="canvas"></canvas>
+    <div class="settings">
+      <form class="form">
+        <label>Max Speed</label>
+        <input id="maxSpeed" type="text">
+        <label>Max Force</label>
+        <input id="maxForce" type="text">
+        <label>Neighbohood Size</label>
+        <input id="neighbohoodSize" type="text" >
+        <label>Number of Boids</label>
+        <input id="boidCount" type="number">
+        <label>Box Size</label>
+        <input id="boxSize" type="number">
+        <button id="button" type="submit">Submit</button>
+      </form>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
