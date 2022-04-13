@@ -9,9 +9,10 @@ const colorList = [0x8ce68c, 0xabf1bc, 0xaee7f8, 0x87cdf6];
 let settings = {
 	maxSpeed: 0.5,
 	maxForce: 0.03,
-	neighbohoodSize: 10,
+	neighbohoodSize: 7,
 	boidCount: 100,
 	boxSize: 50,
+	randomHome: true,
 };
 //get html form
 const form = document.querySelector("form");
@@ -27,10 +28,13 @@ form["boidCount"].value = String(settings.boidCount);
 /** @ts-ignore */
 form["boxSize"].value = String(settings.boxSize);
 /* @ts-ignore */
+form["randomHome"].checked = settings.randomHome;
+/* @ts-ignore */
 //add callback for if the button on the form is pressed
 form.addEventListener("submit", e => {
 	//prevent site from reloading
 	e.preventDefault();
+
 	/* @ts-ignore */
 	//check if boidCount has changed
 	if (settings["boidCount"] != Number(form["boidCount"].value)) {
@@ -93,47 +97,47 @@ form.addEventListener("submit", e => {
 	settings["neighbohoodSize"] = Number(form["neighbohoodSize"].value);
 	/* @ts-ignore */
 	settings["boidCount"] = Number(form["boidCount"].value);
+	/* @ts-ignore */
+	settings["randomHome"] = form["randomHome"].checked;
 });
 
 class boid extends THREE.Mesh {
-	x: number;
-	y: number;
-	z: number;
 	rot: THREE.Vector3;
 	vel: THREE.Vector3;
 	closeCount: number;
-
+	home: THREE.Vector3;
+	randomHome: boolean;
 	constructor(scene: THREE.Scene) {
 		const geo = new THREE.ConeGeometry(0.5, 2, 32, 32);
 		const mat = new THREE.MeshBasicMaterial({
 			color: colorList[Math.floor(Math.random() * colorList.length)],
 		});
 		super(geo, mat);
-		this.x = this.randomPosition("x");
-		this.y = this.randomPosition("y");
-		this.z = this.randomPosition("z");
 		this.rot = new THREE.Vector3(
 			(Math.PI / Math.random()) * 2,
 			(Math.PI / Math.random()) * 2,
 			(Math.PI / Math.random()) * 2
 		);
-		this.position.x = this.x;
-		this.position.y = this.y;
-		this.position.z = this.z;
+		this.randomHome = false;
+		this.position.x = this.randomPosition("x");
+		this.position.y = this.randomPosition("y");
+		this.position.z = this.randomPosition("z");
 		this.rotation.set(this.rot.x, this.rot.y, this.rot.z);
 		this.vel = new THREE.Vector3(0, 0, 0);
 		this.closeCount = 0;
+		this.home = this.updateHome();
 		scene.add(this);
 	}
 	updateBoid() {
+		//update the position with the velocity
 		this.position.add(this.vel);
-		this.x = this.position.x;
-		this.y = this.position.y;
-		this.z = this.position.z;
+		//set the rotation
 		this.quaternion.setFromUnitVectors(
 			new THREE.Vector3(0, 1, 0),
 			this.vel.clone().normalize()
 		);
+		//update home position
+		this.updateHome();
 	}
 	randomPosition(axis: String) {
 		//create multiplier to allow negative values
@@ -147,6 +151,27 @@ class boid extends THREE.Mesh {
 				return Math.random() * neg * (settings.boxSize / 2);
 		}
 		return 0;
+	}
+	updateHome() {
+		//makes sure that home already exists
+		if (this.home) {
+			if (this.randomHome == settings.randomHome) {
+				return this.home;
+			}
+		}
+		const home = new THREE.Vector3(0, 0, 0);
+		if (settings.randomHome) {
+			this.randomHome = true;
+			const neg = Math.random() > 0.5 ? -1 : 1;
+			home.set(
+				Math.random() * neg * (settings.boxSize / 4),
+				Math.random() * neg * (settings.boxSize / 4),
+				Math.random() * neg * (settings.boxSize / 4)
+			);
+		} else {
+			this.randomHome = false;
+		}
+		return home;
 	}
 	distanceRule(boids: boid[], count: number) {
 		const minDistance = 1;
@@ -254,7 +279,7 @@ class boid extends THREE.Mesh {
 		acceleration.add(cohesion);
 		if (this.position.length() > settings.boxSize - 30) {
 			const homeForce = this.steerTo(
-				new THREE.Vector3(0, 0, 0),
+				this.home,
 				maxSpeed,
 				0.03
 			).multiplyScalar(1);
