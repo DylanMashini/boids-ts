@@ -1,6 +1,7 @@
 import "./style.css";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { VRButton } from "three/examples/jsm/webxr/VRButton.js";
 
 //list of colors to randomly choose
 const colorList = [0x8ce68c, 0xabf1bc, 0xaee7f8, 0x87cdf6];
@@ -293,6 +294,9 @@ const camera = new THREE.PerspectiveCamera(
 const renderer = new THREE.WebGLRenderer({
 	canvas: document.querySelector("#canvas") as HTMLCanvasElement,
 });
+document.body.appendChild(VRButton.createButton(renderer));
+renderer.xr.enabled = true;
+
 scene.background = new THREE.Color(0xffffff);
 let boxgeo = new THREE.BoxGeometry(
 	settings.boxSize,
@@ -339,11 +343,17 @@ for (let i = 0; i < settings.boidCount; i++) {
 	boids.push(bird);
 }
 
-const animate = () => {
-	requestAnimationFrame(animate);
+// const animate = () => {
+// 	requestAnimationFrame(animate);
+// 	renderer.render(scene, camera);
+// 	boids.forEach(boid => {
+// 		boid.move(boids);
+// 	});
+// };
+// animate();
+renderer.setAnimationLoop(function () {
 	renderer.render(scene, camera);
 	boids.forEach(boid => {
 		boid.move(boids);
 	});
-};
-animate();
+});
