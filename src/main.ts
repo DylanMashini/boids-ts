@@ -51,7 +51,7 @@ form.addEventListener("submit", e => {
 					//remove one item from array + dispose of all THREE.js classes
 					boids[0].geometry.dispose();
 					scene.remove(boids[0]);
-					const boid = boids.shift();
+					boids.shift();
 				}
 			}
 		} else {
