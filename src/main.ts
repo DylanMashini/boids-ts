@@ -1,18 +1,11 @@
 import "./style.css";
 import * as THREE from "three";
-
-// const app = document.querySelector<HTMLDivElement>("#app")!;
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+
+//list of colors to randomly choose
 const colorList = [0x8ce68c, 0xabf1bc, 0xaee7f8, 0x87cdf6];
-//easier variation of rules that still keeps separation alignment and cohesion
-const distanceCalc = (
-	a: { x: number; y: number; z: number },
-	b: { x: number; y: number; z: number }
-) => {
-	return Math.sqrt(
-		Math.pow(a.x - b.x, 2) + Math.pow(a.y - a.y, 2) + Math.pow(a.z - b.z, 2)
-	);
-};
+
+//set default settings
 let settings = {
 	maxSpeed: 0.5,
 	maxForce: 0.03,
@@ -20,8 +13,9 @@ let settings = {
 	boidCount: 100,
 	boxSize: 50,
 };
+//get html form
 const form = document.querySelector("form");
-//setup inital values
+//setup inital form values
 /* @ts-ignore */
 form["maxSpeed"].value = String(settings["maxSpeed"]);
 /* @ts-ignore */
@@ -33,13 +27,16 @@ form["boidCount"].value = String(settings.boidCount);
 /** @ts-ignore */
 form["boxSize"].value = String(settings.boxSize);
 /* @ts-ignore */
+//add callback for if the button on the form is pressed
 form.addEventListener("submit", e => {
-	//form changed, update settings
+	//prevent site from reloading
 	e.preventDefault();
 	/* @ts-ignore */
+	//check if boidCount has changed
 	if (settings["boidCount"] != Number(form["boidCount"].value)) {
 		//need to add or remove boids
 		/* @ts-ignore */
+		//check if we need to remove or add boids
 		if (settings["boidCount"] > Number(form["boidCount"].value)) {
 			//need to remove boids
 			/* @ts-ignore */
@@ -47,46 +44,47 @@ form.addEventListener("submit", e => {
 				/* @ts-ignore */
 				settings["boidCount"] - Number(form["boidCount"].value);
 			if (boidsToRemove <= 0) {
-				//error here
+				//user put in negative ammount of boids
 				console.error("Cant have negative boids");
 			} else {
 				for (let i = 0; i < boidsToRemove; i++) {
-					//remove one item from array
-					boids[0].geo.dispose();
-					boids[0].mat.dispose();
-					scene.remove(boids[0].mesh);
+					//remove one item from array + dispose of all THREE.js classes
+					boids[0].geometry.dispose();
+					scene.remove(boids[0]);
 					const boid = boids.shift();
-					boid?.geo.dispose();
-					boid?.mat.dispose();
-					boid?.mat.dispose();
 				}
 			}
 		} else {
 			//need to add boids
 			/* @ts-ignore */
+			//calculate the ammount of boids needed
 			const boidsToAdd =
 				/* @ts-ignore */
 				Number(form["boidCount"].value);
 			-settings["boidCount"];
 			if (boidsToAdd <= 0) {
-				//error here
+				//user put in negative number
 				console.error("Can't have negative boids");
 			} else {
+				//push a new boid to the array for each boidToAdd
 				for (let i = 0; i < boidsToAdd; i++) {
 					boids.push(new boid(scene));
 				}
 			}
 		}
 	}
-	//check if box size changed
 	/* @ts-ignore */
+	//check if box size changed
 	if (settings["boxSize"] != Number(form["boxSize"].value)) {
 		//box size changed
 		/* @ts-ignore */
+		//change box size setting first
 		settings["boxSize"] = Number(form["boxSize"].value);
 		/* @ts-ignore */
+		//than run function that changes the box displayed
 		[boxgeo, boxmat, box] = changeBox(boxgeo, boxmat, box, scene);
 	}
+	//update all other settings
 	/* @ts-ignore */
 	settings["maxSpeed"] = Number(form["maxSpeed"].value);
 	/* @ts-ignore */
@@ -96,19 +94,21 @@ form.addEventListener("submit", e => {
 	/* @ts-ignore */
 	settings["boidCount"] = Number(form["boidCount"].value);
 });
-class boid {
+
+class boid extends THREE.Mesh {
 	x: number;
 	y: number;
 	z: number;
 	rot: THREE.Vector3;
-	geo: THREE.ConeGeometry;
-	mat: THREE.MeshBasicMaterial;
-	mesh: THREE.Mesh;
-	distanceFromCenter: number;
 	vel: THREE.Vector3;
 	closeCount: number;
-	color: THREE.Color;
+
 	constructor(scene: THREE.Scene) {
+		const geo = new THREE.ConeGeometry(0.5, 2, 32, 32);
+		const mat = new THREE.MeshBasicMaterial({
+			color: colorList[Math.floor(Math.random() * colorList.length)],
+		});
+		super(geo, mat);
 		this.x = this.randomPosition("x");
 		this.y = this.randomPosition("y");
 		this.z = this.randomPosition("z");
@@ -117,30 +117,20 @@ class boid {
 			(Math.PI / Math.random()) * 2,
 			(Math.PI / Math.random()) * 2
 		);
-		this.geo = new THREE.ConeGeometry(0.5, 2, 32, 32);
-		this.color = new THREE.Color(
-			colorList[Math.floor(Math.random() * colorList.length)]
-		);
-		this.mat = new THREE.MeshBasicMaterial({ color: this.color });
-		this.mesh = new THREE.Mesh(this.geo, this.mat);
-		this.mesh.position.x = this.x;
-		this.mesh.position.y = this.y;
-		this.mesh.position.z = this.z;
-		this.mesh.rotation.set(this.rot.x, this.rot.y, this.rot.z);
+		this.position.x = this.x;
+		this.position.y = this.y;
+		this.position.z = this.z;
+		this.rotation.set(this.rot.x, this.rot.y, this.rot.z);
 		this.vel = new THREE.Vector3(0, 0, 0);
 		this.closeCount = 0;
-		scene.add(this.mesh);
-		this.distanceFromCenter = distanceCalc(
-			{ x: 0, y: 0, z: 0 },
-			{ x: this.x, y: this.y, z: this.z }
-		);
+		scene.add(this);
 	}
 	updateBoid() {
-		this.mesh.position.add(this.vel);
-		this.x = this.mesh.position.x;
-		this.y = this.mesh.position.y;
-		this.z = this.mesh.position.z;
-		this.mesh.quaternion.setFromUnitVectors(
+		this.position.add(this.vel);
+		this.x = this.position.x;
+		this.y = this.position.y;
+		this.z = this.position.z;
+		this.quaternion.setFromUnitVectors(
 			new THREE.Vector3(0, 1, 0),
 			this.vel.clone().normalize()
 		);
@@ -162,13 +152,11 @@ class boid {
 		const minDistance = 1;
 		for (let i = 0; i < boids.length; i++) {
 			if (i != count) {
-				const distance = this.mesh.position.distanceTo(
-					boids[i].mesh.position
-				);
+				const distance = this.position.distanceTo(boids[i].position);
 				if (distance < minDistance) {
 					//boids are too close together
 					let d = new THREE.Vector3();
-					d.subVectors(this.mesh.position, boids[i].mesh.position);
+					d.subVectors(this.position, boids[i].position);
 					this.vel.add(d.multiplyScalar(Math.random() * 5));
 					this.closeCount += 1;
 				} else {
@@ -191,9 +179,7 @@ class boid {
 		let cohesionCount = 0;
 		for (let i = 0; i < boids.length; i++) {
 			//get distance of boid at i from current boid
-			const distance = this.mesh.position.distanceTo(
-				boids[i].mesh.position
-			);
+			const distance = this.position.distanceTo(boids[i].position);
 
 			if (distance > 0) {
 				//get sum of velocity of all neighbors in a given distance for allignment
@@ -203,14 +189,14 @@ class boid {
 				}
 				//sum up all POSITIONS of all neighbors in a given distance for cohesion
 				if (distance < settings.neighbohoodSize) {
-					cohesionSum.add(boids[i].mesh.position);
+					cohesionSum.add(boids[i].position);
 					cohesionCount++;
 				}
 				//do seperation rule
 				if (distance < settings.neighbohoodSize) {
 					const vecDir = new THREE.Vector3().subVectors(
-						this.mesh.position,
-						boids[i].mesh.position
+						this.position,
+						boids[i].position
 					);
 					vecDir.normalize();
 					vecDir.divideScalar(distance);
@@ -247,10 +233,7 @@ class boid {
 		return [allignmentSum, cohesionSum, seperationSum];
 	}
 	steerTo(target: any, maxSpeed: any, maxForce: any) {
-		const targetVec = new THREE.Vector3().subVectors(
-			target,
-			this.mesh.position
-		);
+		const targetVec = new THREE.Vector3().subVectors(target, this.position);
 
 		targetVec.setLength(maxSpeed);
 
@@ -269,7 +252,7 @@ class boid {
 		acceleration.add(seperation);
 		acceleration.add(allignment);
 		acceleration.add(cohesion);
-		if (this.mesh.position.length() > settings.boxSize - 30) {
+		if (this.position.length() > settings.boxSize - 30) {
 			const homeForce = this.steerTo(
 				new THREE.Vector3(0, 0, 0),
 				maxSpeed,
