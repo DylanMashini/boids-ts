@@ -38,11 +38,12 @@ form["color"].checked = settings.colorSeperation;
 form.addEventListener("submit", e => {
 	//prevent site from reloading
 	e.preventDefault();
-
 	/* @ts-ignore */
 	//check if boidCount has changed
 	if (settings["boidCount"] != Number(form["boidCount"].value)) {
 		//need to add or remove boids
+		/* @ts-ignore */
+		settings["boidCount"] = Number(form["boidCount"].value);
 		/* @ts-ignore */
 		//check if we need to remove or add boids
 		if (settings["boidCount"] > Number(form["boidCount"].value)) {
@@ -99,8 +100,6 @@ form.addEventListener("submit", e => {
 	settings["maxForce"] = Number(form["maxForce"].value);
 	/* @ts-ignore */
 	settings["neighbohoodSize"] = Number(form["neighbohoodSize"].value);
-	/* @ts-ignore */
-	settings["boidCount"] = Number(form["boidCount"].value);
 	/* @ts-ignore */
 	settings["randomHome"] = form["randomHome"].checked;
 	/* @ts-ignore */
