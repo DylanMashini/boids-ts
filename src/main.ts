@@ -43,8 +43,6 @@ form.addEventListener("submit", e => {
 	if (settings["boidCount"] != Number(form["boidCount"].value)) {
 		//need to add or remove boids
 		/* @ts-ignore */
-		settings["boidCount"] = Number(form["boidCount"].value);
-		/* @ts-ignore */
 		//check if we need to remove or add boids
 		if (settings["boidCount"] > Number(form["boidCount"].value)) {
 			//need to remove boids
@@ -104,6 +102,8 @@ form.addEventListener("submit", e => {
 	settings["randomHome"] = form["randomHome"].checked;
 	/* @ts-ignore */
 	settings["colorSeperation"] = form["color"].checked;
+	/* @ts-ignore */
+	settings["boidCount"] = Number(form["boidCount"].value);
 });
 
 class boid extends THREE.Mesh {
