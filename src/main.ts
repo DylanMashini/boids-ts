@@ -10,9 +10,9 @@ const colorList = [0x8ce68c, 0xabf1bc, 0xaee7f8, 0x87cdf6];
 let settings = {
 	maxSpeed: 0.5,
 	maxForce: 0.03,
-	neighbohoodSize: 7,
-	boidCount: 100,
-	boxSize: 50,
+	neighbohoodSize: 6,
+	boidCount: 1000,
+	boxSize: 200,
 	randomHome: true,
 	colorSeperation: false,
 };
@@ -38,7 +38,6 @@ form["color"].checked = settings.colorSeperation;
 form.addEventListener("submit", e => {
 	//prevent site from reloading
 	e.preventDefault();
-
 	/* @ts-ignore */
 	//check if boidCount has changed
 	if (settings["boidCount"] != Number(form["boidCount"].value)) {
@@ -101,7 +100,6 @@ form.addEventListener("submit", e => {
 	settings["maxForce"] = Number(form["maxForce"].value);
 	/* @ts-ignore */
 	settings["neighbohoodSize"] = Number(form["neighbohoodSize"].value);
-
 	/* @ts-ignore */
 	settings["randomHome"] = form["randomHome"].checked;
 	/* @ts-ignore */
