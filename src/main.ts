@@ -15,6 +15,7 @@ let settings = {
 	boxSize: 200,
 	randomHome: true,
 	colorSeperation: false,
+	sphere: false,
 };
 //get html form
 const form = document.querySelector("form");
@@ -33,6 +34,8 @@ form["boxSize"].value = String(settings.boxSize);
 form["randomHome"].checked = settings.randomHome;
 /* @ts-ignore */
 form["color"].checked = settings.colorSeperation;
+/* @ts-ignore */
+form["sphere"].checked = settings.sphere;
 /* @ts-ignore */
 //add callback for if the button on the form is pressed
 form.addEventListener("submit", e => {
@@ -90,6 +93,26 @@ form.addEventListener("submit", e => {
 		/* @ts-ignore */
 		//than run function that changes the box displayed
 		[boxgeo, boxmat, box] = changeBox(boxgeo, boxmat, box, scene);
+	}
+	/* @ts-ignore */
+	if (settings["sphere"] != form["sphere"].checked) {
+		//change shape to sphere
+		/* @ts-ignore */
+		if (form["sphere"].checked) {
+			scene.remove(box);
+			boxgeo.dispose();
+			boxgeo = new THREE.SphereGeometry(settings.boxSize, 32, 32);
+			box = new THREE.Mesh(boxgeo, boxmat);
+			scene.add(box);
+			/* @ts-ignore */
+			document.getElementById("containerLabel").innerHTML = "Sphere Size";
+		} else {
+			changeBox(boxgeo, boxmat, box, scene);
+			/* @ts-ignore */
+			document.getElementById("containerLabel").innerHTML = "Box Size";
+		}
+		/* @ts-ignore */
+		settings["sphere"] = form["sphere"].checked;
 	}
 	//update all other settings
 	/* @ts-ignore */
@@ -297,7 +320,7 @@ document.body.appendChild(VRButton.createButton(renderer));
 renderer.xr.enabled = true;
 
 scene.background = new THREE.Color(0xffffff);
-let boxgeo = new THREE.BoxGeometry(
+let boxgeo: any = new THREE.BoxGeometry(
 	settings.boxSize,
 	settings.boxSize,
 	settings.boxSize
