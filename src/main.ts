@@ -18,40 +18,31 @@ let settings = {
 	sphere: false,
 };
 //get html form
-const form = document.querySelector("form");
+const form = document.querySelector("form")!;
 //setup inital form values
-/* @ts-ignore */
 form["maxSpeed"].value = String(settings["maxSpeed"]);
-/* @ts-ignore */
 form["maxForce"].value = String(settings["maxForce"]);
-/* @ts-ignore */
 form["neighbohoodSize"].value = String(settings["neighbohoodSize"]);
-/* @ts-ignore */
 form["boidCount"].value = String(settings.boidCount);
-/** @ts-ignore */
 form["boxSize"].value = String(settings.boxSize);
-/* @ts-ignore */
 form["randomHome"].checked = settings.randomHome;
-/* @ts-ignore */
 form["color"].checked = settings.colorSeperation;
-/* @ts-ignore */
 form["sphere"].checked = settings.sphere;
-/* @ts-ignore */
+
 //add callback for if the button on the form is pressed
 form.addEventListener("submit", e => {
 	//prevent site from reloading
 	e.preventDefault();
-	/* @ts-ignore */
+
 	//check if boidCount has changed
 	if (settings["boidCount"] != Number(form["boidCount"].value)) {
 		//need to add or remove boids
-		/* @ts-ignore */
+
 		//check if we need to remove or add boids
 		if (settings["boidCount"] > Number(form["boidCount"].value)) {
 			//need to remove boids
-			/* @ts-ignore */
+
 			const boidsToRemove =
-				/* @ts-ignore */
 				settings["boidCount"] - Number(form["boidCount"].value);
 			if (boidsToRemove <= 0) {
 				//user put in negative ammount of boids
@@ -66,11 +57,9 @@ form.addEventListener("submit", e => {
 			}
 		} else {
 			//need to add boids
-			/* @ts-ignore */
+
 			//calculate the ammount of boids needed
-			const boidsToAdd =
-				/* @ts-ignore */
-				Number(form["boidCount"].value);
+			const boidsToAdd = Number(form["boidCount"].value);
 			-settings["boidCount"];
 			if (boidsToAdd <= 0) {
 				//user put in negative number
@@ -83,49 +72,49 @@ form.addEventListener("submit", e => {
 			}
 		}
 	}
-	/* @ts-ignore */
 	//check if box size changed
 	if (settings["boxSize"] != Number(form["boxSize"].value)) {
 		//box size changed
-		/* @ts-ignore */
+
 		//change box size setting first
 		settings["boxSize"] = Number(form["boxSize"].value);
-		/* @ts-ignore */
+
 		//than run function that changes the box displayed
 		[boxgeo, boxmat, box] = changeBox(boxgeo, boxmat, box, scene);
 	}
-	/* @ts-ignore */
+
 	if (settings["sphere"] != form["sphere"].checked) {
 		//change shape to sphere
-		/* @ts-ignore */
+
 		if (form["sphere"].checked) {
 			scene.remove(box);
 			boxgeo.dispose();
 			boxgeo = new THREE.SphereGeometry(settings.boxSize, 32, 32);
 			box = new THREE.Mesh(boxgeo, boxmat);
 			scene.add(box);
-			/* @ts-ignore */
-			document.getElementById("containerLabel").innerHTML = "Sphere Size";
+
+			document.getElementById("containerLabel")!.innerHTML =
+				"Sphere Size";
 		} else {
 			changeBox(boxgeo, boxmat, box, scene);
-			/* @ts-ignore */
-			document.getElementById("containerLabel").innerHTML = "Box Size";
+
+			document.getElementById("containerLabel")!.innerHTML = "Box Size";
 		}
-		/* @ts-ignore */
+
 		settings["sphere"] = form["sphere"].checked;
 	}
 	//update all other settings
-	/* @ts-ignore */
+
 	settings["maxSpeed"] = Number(form["maxSpeed"].value);
-	/* @ts-ignore */
+
 	settings["maxForce"] = Number(form["maxForce"].value);
-	/* @ts-ignore */
+
 	settings["neighbohoodSize"] = Number(form["neighbohoodSize"].value);
-	/* @ts-ignore */
+
 	settings["randomHome"] = form["randomHome"].checked;
-	/* @ts-ignore */
+
 	settings["colorSeperation"] = form["color"].checked;
-	/* @ts-ignore */
+
 	settings["boidCount"] = Number(form["boidCount"].value);
 });
 
@@ -335,7 +324,11 @@ const changeBox = (
 	boxmat: THREE.MeshBasicMaterial,
 	box: THREE.Mesh,
 	scene: THREE.Scene
-) => {
+): [
+	THREE.BoxGeometry,
+	THREE.MeshBasicMaterial,
+	THREE.Mesh<any, THREE.MeshBasicMaterial>
+] => {
 	boxgeo.dispose();
 	//create a new geometry with the new size
 	const newGeo = new THREE.BoxGeometry(
