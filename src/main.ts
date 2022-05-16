@@ -2,10 +2,11 @@ import "./style.css";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { VRButton } from "three/examples/jsm/webxr/VRButton.js";
+import Stats from "stats.js";
 
 //list of colors to randomly choose
 const colorList = [0x8ce68c, 0xabf1bc, 0xaee7f8, 0x87cdf6];
-
+let debug = false;
 //set default settings
 let settings = {
 	maxSpeed: 0.5,
@@ -366,9 +367,14 @@ for (let i = 0; i < settings.boidCount; i++) {
 // 	});
 // };
 // animate();
+const stats = new Stats();
+stats.showPanel(0);
+document.body.appendChild(stats.dom);
 renderer.setAnimationLoop(function () {
+	stats.begin();
 	renderer.render(scene, camera);
 	boids.forEach(boid => {
 		boid.move(boids);
 	});
+	stats.end();
 });
