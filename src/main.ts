@@ -6,7 +6,6 @@ import Stats from "stats.js";
 
 //list of colors to randomly choose
 const colorList = [0x8ce68c, 0xabf1bc, 0xaee7f8, 0x87cdf6];
-let debug = false;
 //set default settings
 let settings = {
 	maxSpeed: 0.5,
@@ -151,6 +150,7 @@ class boid extends THREE.Mesh {
 	}
 	updateBoid() {
 		//update the position with the velocity
+		console.log(this.vel);
 		this.position.add(this.vel);
 		//set the rotation
 		this.quaternion.setFromUnitVectors(
@@ -286,12 +286,14 @@ class boid extends THREE.Mesh {
 		acceleration.add(allignment);
 		acceleration.add(cohesion);
 		// if (this.position.length() > settings.boxSize - 30) {
+
 		const homeForce = this.steerTo(this.home, maxSpeed, 0.03).divideScalar(
 			7
 		);
 		acceleration.sub(homeForce);
 		// }
 		this.vel.add(acceleration).clampLength(0, maxSpeed);
+		console.log(this.vel);
 		this.updateBoid();
 	}
 }
